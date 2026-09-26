@@ -20,12 +20,15 @@ class Referral(Base):
 
     reason = Column(String(255), nullable=False)
     service_required = Column(String(100), nullable=False)
+    resource_type = Column(String(50), nullable=True)
+    resource_id = Column(String(50), nullable=True)
 
     priority = Column(String(20), nullable=False, default="ROUTINE")
     priority_reason = Column(String(255), nullable=True)
     triage_score = Column(Integer, nullable=True)
 
     status = Column(String(30), nullable=False, default="CREATED")
+    appointment_date = Column(DateTime, nullable=True)
 
     created_at = Column(
         DateTime,

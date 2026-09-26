@@ -1,10 +1,10 @@
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.referral import Referral
-from app.schemas.referral import ReferralCreate
 from app.schemas.referral import ReferralCreate, AppointmentCreate
 
 
@@ -22,6 +22,7 @@ def get_db():
         db.close()
 
 
+# Create Referral
 @router.post("/")
 def create_referral(
     referral: ReferralCreate,
@@ -33,6 +34,8 @@ def create_referral(
         to_facility=referral.to_facility,
         reason=referral.reason,
         service_required=referral.service_required,
+        resource_type=referral.resource_type,
+        resource_id=referral.resource_id,
         priority=referral.priority,
         priority_reason=referral.priority_reason,
         triage_score=referral.triage_score
@@ -43,6 +46,9 @@ def create_referral(
     db.refresh(new_referral)
 
     return new_referral
+
+
+# Acknowledge Referral
 @router.patch("/{referral_id}/acknowledge")
 def acknowledge_referral(
     referral_id: int,
@@ -60,12 +66,14 @@ def acknowledge_referral(
 
     referral.status = "ACKNOWLEDGED"
     referral.acknowledged_at = datetime.utcnow()
-    appointment_date = Column(DateTime, nullable=True)
 
     db.commit()
     db.refresh(referral)
 
     return referral
+
+
+# Schedule Appointment
 @router.patch("/{referral_id}/appointment")
 def schedule_appointment(
     referral_id: int,
@@ -95,6 +103,9 @@ def schedule_appointment(
     db.refresh(referral)
 
     return referral
+
+
+# Check In Patient
 @router.patch("/{referral_id}/check-in")
 def check_in_patient(
     referral_id: int,
@@ -122,3 +133,45 @@ def check_in_patient(
     db.refresh(referral)
 
     return referral
+
+
+# Get Queue
+@router.get("/queue")
+def get_queue(
+    resource_type: str,
+    resource_id: str,
+    db: Session = Depends(get_db)
+):
+    referrals = db.query(Referral).filter(
+        Referral.status == "CHECKED_IN",
+        Referral.resource_type == resource_type,
+        Referral.resource_id == resource_id
+    ).all()
+
+    priority_order = {
+        "EMERGENCY": 1,
+        "URGENT": 2,
+        "ROUTINE": 3
+    }
+
+    referrals.sort(
+        key=lambda referral: priority_order.get(
+            referral.priority.upper(), 3
+        )
+    )
+
+    queue = []
+
+    for position, referral in enumerate(referrals, start=1):
+        queue.append({
+            "queue_position": position,
+            "referral_id": referral.referral_id,
+            "patient_id": referral.patient_id,
+            "priority": referral.priority,
+            "service_required": referral.service_required,
+            "resource_type": referral.resource_type,
+            "resource_id": referral.resource_id,
+            "status": referral.status
+        })
+
+    return queue

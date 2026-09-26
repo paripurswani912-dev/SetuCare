@@ -9,7 +9,8 @@ class ReferralCreate(BaseModel):
     to_facility: str
     reason: str
     service_required: str
-
+    resource_type: Optional[str] = None
+    resource_id: Optional[str] = None
     priority: str = "ROUTINE"
     priority_reason: Optional[str] = None
     triage_score: Optional[int] = None
