@@ -18,3 +18,13 @@ class ReferralCreate(BaseModel):
 
 class AppointmentCreate(BaseModel):
     appointment_date: datetime
+
+class TreatmentCreate(BaseModel):
+    treatment_notes: str
+
+class CounterReferralCreate(BaseModel):
+    counter_referral_notes: str
+
+class FollowUpCreate(BaseModel):
+    follow_up_date: datetime
+    follow_up_notes: str

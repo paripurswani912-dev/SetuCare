@@ -5,8 +5,13 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.referral import Referral
-from app.schemas.referral import ReferralCreate, AppointmentCreate
-
+from app.schemas.referral import (
+    ReferralCreate,
+    AppointmentCreate,
+    TreatmentCreate,
+    CounterReferralCreate,
+    FollowUpCreate
+)
 
 router = APIRouter(
     prefix="/referrals",
@@ -175,3 +180,150 @@ def get_queue(
         })
 
     return queue
+@router.patch("/{referral_id}/consultation")
+def start_consultation(
+    referral_id: int,
+    db: Session = Depends(get_db)
+):
+    referral = db.query(Referral).filter(
+        Referral.referral_id == referral_id
+    ).first()
+
+    if referral is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Referral not found"
+        )
+
+    if referral.status != "CHECKED_IN":
+        raise HTTPException(
+            status_code=400,
+            detail="Patient must be checked in before consultation"
+        )
+
+    referral.status = "IN_CONSULTATION"
+
+    db.commit()
+    db.refresh(referral)
+
+    return referral
+# Record Treatment
+@router.patch("/{referral_id}/treatment")
+def record_treatment(
+    referral_id: int,
+    treatment: TreatmentCreate,
+    db: Session = Depends(get_db)
+):
+    referral = db.query(Referral).filter(
+        Referral.referral_id == referral_id
+    ).first()
+
+    if referral is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Referral not found"
+        )
+
+    if referral.status != "IN_CONSULTATION":
+        raise HTTPException(
+            status_code=400,
+            detail="Patient must be in consultation before recording treatment"
+        )
+
+    referral.treatment_notes = treatment.treatment_notes
+    referral.status = "TREATMENT"
+
+    db.commit()
+    db.refresh(referral)
+
+    return referral
+# Create Counter Referral
+@router.patch("/{referral_id}/counter-referral")
+def create_counter_referral(
+    referral_id: int,
+    counter_referral: CounterReferralCreate,
+    db: Session = Depends(get_db)
+):
+    referral = db.query(Referral).filter(
+        Referral.referral_id == referral_id
+    ).first()
+
+    if referral is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Referral not found"
+        )
+
+    if referral.status != "TREATMENT":
+        raise HTTPException(
+            status_code=400,
+            detail="Treatment must be completed before creating counter-referral"
+        )
+
+    referral.counter_referral_notes = (
+        counter_referral.counter_referral_notes
+    )
+    referral.status = "COUNTER_REFERRAL"
+
+    db.commit()
+    db.refresh(referral)
+
+    return referral
+# Create Follow-Up
+@router.patch("/{referral_id}/follow-up")
+def create_follow_up(
+    referral_id: int,
+    follow_up: FollowUpCreate,
+    db: Session = Depends(get_db)
+):
+    referral = db.query(Referral).filter(
+        Referral.referral_id == referral_id
+    ).first()
+
+    if referral is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Referral not found"
+        )
+
+    if referral.status != "COUNTER_REFERRAL":
+        raise HTTPException(
+            status_code=400,
+            detail="Counter-referral must be completed before creating follow-up"
+        )
+
+    referral.follow_up_date = follow_up.follow_up_date
+    referral.follow_up_notes = follow_up.follow_up_notes
+    referral.status = "FOLLOW_UP"
+
+    db.commit()
+    db.refresh(referral)
+
+    return referral
+@router.patch("/{referral_id}/complete")
+def complete_referral(
+    referral_id: int,
+    db: Session = Depends(get_db)
+):
+    referral = db.query(Referral).filter(
+        Referral.referral_id == referral_id
+    ).first()
+
+    if referral is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Referral not found"
+        )
+
+    if referral.status != "FOLLOW_UP":
+        raise HTTPException(
+            status_code=400,
+            detail="Follow-up must be created before completing referral"
+        )
+
+    referral.status = "COMPLETED"
+
+    db.commit()
+    db.refresh(referral)
+
+    return referral

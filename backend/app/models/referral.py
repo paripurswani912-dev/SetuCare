@@ -29,6 +29,10 @@ class Referral(Base):
 
     status = Column(String(30), nullable=False, default="CREATED")
     appointment_date = Column(DateTime, nullable=True)
+    treatment_notes = Column(String(500), nullable=True)
+    counter_referral_notes = Column(String(500), nullable=True)
+    follow_up_date = Column(DateTime, nullable=True)
+    follow_up_notes = Column(String(500), nullable=True)
 
     created_at = Column(
         DateTime,
