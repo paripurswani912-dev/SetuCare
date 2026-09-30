@@ -23,8 +23,26 @@ SetuCare is architected as a full-stack web application:
 
 ---
 
-### 2. Setting Up the Backend
+### 🚀 Option A: Unified 1-Command Start (Backend + Frontend Together)
 
+Run both the FastAPI backend (`uvicorn`) and Next.js frontend concurrently using a single command from the project root:
+
+```bash
+# 1. Install root dependencies (includes concurrently)
+npm install
+
+# 2. Launch both Backend (uvicorn) and Frontend (Next.js) simultaneously
+npm run dev
+```
+
+- **Backend API (`uvicorn`)**: `http://localhost:8000`
+- **Frontend App (Next.js)**: `http://localhost:3000`
+
+---
+
+### 🛠️ Option B: Step-by-Step Manual Setup
+
+#### 1. Setting Up the Backend
 ```bash
 # 1. Navigate to the backend directory
 cd backend
@@ -43,7 +61,7 @@ uvicorn main:app --reload
 ```
 The backend API will run live at: **`http://localhost:8000`**
 
-#### Seed Sample Demo Data (Optional)
+##### Seed Sample Demo Data (Optional)
 In a secondary terminal (while `uvicorn` is running):
 ```bash
 cd backend
@@ -52,8 +70,7 @@ python seed_demo.py
 
 ---
 
-### 3. Setting Up the Frontend
-
+#### 2. Setting Up the Frontend
 ```bash
 # 1. Open a new terminal and navigate to frontend
 cd frontend
@@ -102,13 +119,37 @@ The frontend website will run live at: **`http://localhost:3000`**
 
 ## 🚀 Cloud Deployment Guide (Render)
 
-### Deploy Backend (FastAPI Web Service)
+### 🌟 1-Click Blueprint Deployment (Deploys Backend & Frontend Together)
+
+Instead of creating separate web services with individual start commands, SetuCare includes a pre-configured **Render Blueprint** ([`render.yaml`](file:///c:/Users/Pari/Desktop/projects/SetuCare/render.yaml)) that automatically provisions and deploys **both** the FastAPI backend (`uvicorn`) and Next.js frontend simultaneously!
+
+1. Push your repository to **GitHub**.
+2. Log in to [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** in the top right and select **Blueprint**.
+4. Connect your GitHub repository.
+5. Render will automatically detect [`render.yaml`](file:///c:/Users/Pari/Desktop/projects/SetuCare/render.yaml) and provision:
+   - 🐍 **`setucare-backend`**: FastAPI Web Service running `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - ⚡ **`setucare-frontend`**: Next.js Web Service running `npm run start`
+6. Click **Apply**. Render will deploy both services in unison and automatically wire `NEXT_PUBLIC_API_URL` from `setucare-backend` into the frontend!
+
+---
+
+### 🛠️ Manual Separate Web Service Deployment
+
+If you prefer creating individual Web Services manually in Render:
+
+#### 1. Deploy Backend (FastAPI Web Service)
+- **Service Name**: `setucare-backend`
 - **Root Directory**: `backend`
+- **Environment**: Python 3
 - **Build Command**: `pip install -r requirements.txt`
 - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
-### Deploy Frontend (Next.js Web Service)
+#### 2. Deploy Frontend (Next.js Web Service)
+- **Service Name**: `setucare-frontend`
 - **Root Directory**: `frontend`
+- **Environment**: Node
 - **Build Command**: `npm install && npm run build`
 - **Start Command**: `npm run start`
-- **Environment Variable**: `NEXT_PUBLIC_API_URL` = `https://<your-backend-render-url>.onrender.com`
+- **Environment Variables**:
+  - `NEXT_PUBLIC_API_URL` = `https://setucare-backend.onrender.com` (replace with your deployed backend URL)
