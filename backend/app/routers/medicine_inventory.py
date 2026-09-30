@@ -144,3 +144,9 @@ def get_dispensing_history(
     ).all()
 
     return history
+@router.get("/all")
+def list_inventory(facility_name: str = None, db: Session = Depends(get_db)):
+    q = db.query(MedicineInventory)
+    if facility_name:
+        q = q.filter(MedicineInventory.facility_name == facility_name)
+    return q.order_by(MedicineInventory.inventory_id.desc()).all()

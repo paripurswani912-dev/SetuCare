@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -9,11 +9,7 @@ class Referral(Base):
 
     referral_id = Column(Integer, primary_key=True, index=True)
 
-    patient_id = Column(
-        Integer,
-        ForeignKey("patients.patient_id"),
-        nullable=False
-    )
+    patient_id = Column(Integer, ForeignKey("patients.patient_id"), nullable=False)
 
     from_facility = Column(String(100), nullable=False)
     to_facility = Column(String(100), nullable=False)
@@ -34,10 +30,9 @@ class Referral(Base):
     follow_up_date = Column(DateTime, nullable=True)
     follow_up_notes = Column(String(500), nullable=True)
 
-    created_at = Column(
-        DateTime,
-        server_default=func.now(),
-        nullable=False
-    )
-
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
     acknowledged_at = Column(DateTime, nullable=True)
+
+    # NEW: SLA tracking + escalation
+    sla_deadline = Column(DateTime, nullable=True)
+    escalated = Column(Boolean, nullable=False, default=False, server_default="0")

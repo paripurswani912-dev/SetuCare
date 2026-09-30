@@ -1,15 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Environment variables
 .env
-backend/app/models/__pycache__/referral.cpython-313.pyc
-backend/app/models/__pycache__/referral.cpython-313.pyc
-backend/app/routers/__pycache__/referrals.cpython-313.pyc
-backend/app/routers/__pycache__/referrals.cpython-313.pyc
-backend/app/schemas/__pycache__/referral.cpython-313.pyc
-backend/app/models/__pycache__/referral.cpython-313.pyc
-backend/app/__pycache__/main.cpython-313.pyc
-backend/app/models/__pycache__/medicine_dispense.cpython-313.pyc
-backend/app/models/__pycache__/medicine_inventory.cpython-313.pyc
-backend/app/models/__pycache__/prescription.cpython-313.pyc
-backend/app/models/__pycache__/referral.cpython-313.pyc
-backend/app/__pycache__/main.cpython-313.pyc
-backend/app/__pycache__/main.cpython-313.pyc
-backend/app/models/__pycache__/referral.cpython-313.pyc
+.env.local
+.env.*.local
+
+# Node.js / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+.DS_Store
+
+# IDEs & OS
+.vscode/
+.idea/
+*.swp
+*.swo

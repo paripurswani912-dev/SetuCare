@@ -78,3 +78,6 @@ def check_prescription_availability(
         "availability": medicine.status,
         "quantity": medicine.quantity
     }
+@router.get("/by-referral/{referral_id}")
+def prescriptions_for_referral(referral_id: int, db: Session = Depends(get_db)):
+    return db.query(Prescription).filter(Prescription.referral_id == referral_id).all()
