@@ -22,4 +22,4 @@ services:
         fromService:
           type: web
           name: setucare-backend
-          property: host
+          property: url
