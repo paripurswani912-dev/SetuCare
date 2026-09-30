@@ -1,7 +1,7 @@
 import { toast } from './toast';
 import { getSimulatedOffline, enqueueOfflineRequest } from './offlineQueue';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 export class ApiError extends Error {
   status: number;
@@ -65,7 +65,8 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
     throw new OfflineQueuedError(endpoint);
   }
 
-  const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${cleanEndpoint}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -101,13 +102,26 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
         throw new ApiError(409, detail);
       }
 
+      // Format 422 validation errors with field names & detailed messages
+      if (response.status === 422 && Array.isArray(detail)) {
+        const formattedErrors = detail
+          .map((err: any) => {
+            const field = Array.isArray(err.loc) ? err.loc[err.loc.length - 1] : 'field';
+            const msg = err.msg || 'invalid value';
+            return `${field}: ${msg}`;
+          })
+          .join('; ');
+        toast.error('Validation Error (422)', formattedErrors || 'Invalid request payload');
+        throw new ApiError(422, detail);
+      }
+
       const toastMessage = typeof detail === 'string' ? detail : detail?.message || `Request failed with status ${response.status}`;
       toast.error(`Error (${response.status})`, toastMessage);
 
       throw new ApiError(response.status, detail);
     }
 
-    if (response.status === 24) return {} as T;
+    if (response.status === 204) return {} as T;
 
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
@@ -118,7 +132,8 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
     if (error instanceof ApiError || error instanceof OfflineQueuedError) {
       throw error;
     }
-    toast.error('Network Error', error.message || 'Could not connect to SetuCare backend server at http://localhost:8000.');
+    toast.error('Network Error', error.message || `Could not connect to SetuCare backend server at ${BASE_URL}.`);
     throw error;
   }
 }
+

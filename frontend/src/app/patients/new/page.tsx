@@ -113,27 +113,41 @@ function RegisterPatientContent() {
     e.preventDefault();
     setDuplicateWarning(null);
 
-    if (!name.trim()) return toast.warning('Validation', 'Please enter patient name');
+    const trimmedName = name.trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      return toast.warning('Validation', 'Please enter patient name (at least 2 characters)');
+    }
+
     const parsedAge = parseInt(age, 10);
     if (isNaN(parsedAge) || parsedAge < 0 || parsedAge > 120) {
       return toast.warning('Validation', 'Please enter valid age (0-120)');
     }
+
     const cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length !== 10) {
+    if (cleanPhone && cleanPhone.length !== 10) {
       return toast.warning('Validation', 'Phone number must be exactly 10 digits');
     }
 
     const cleanAbha = abhaId.replace(/\D/g, '');
+    if (cleanAbha && cleanAbha.length !== 14) {
+      return toast.warning('Validation', 'ABHA ID must be exactly 14 digits');
+    }
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        name: name.trim(),
+      const payload: Record<string, any> = {
+        name: trimmedName,
         age: parsedAge,
-        gender,
-        phone: cleanPhone,
-        abha_id: cleanAbha.length === 14 ? abhaId : undefined,
+        gender: gender.toUpperCase(),
       };
+
+      if (cleanPhone.length === 10) {
+        payload.phone = cleanPhone;
+      }
+
+      if (cleanAbha.length === 14) {
+        payload.abha_id = cleanAbha;
+      }
 
       const newPatient = await apiFetch<Patient>('/patients/', {
         method: 'POST',
