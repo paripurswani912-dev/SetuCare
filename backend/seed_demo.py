@@ -1,5 +1,3 @@
-"""Optional: fills demo data so dashboards aren't empty. Run:  python seed_demo.py  (server must be running)
-Needs `requests`:  pip install requests"""
 import requests
 
 B = "http://localhost:8000"
